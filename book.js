@@ -33,7 +33,7 @@ console.log("Sorting posts");
 linesMan.sort((x, y) => y[2]-x[2]);
 
 console.log("Sorting authors");
-linesMan.sort((x, y) => authorAmounts[y]-authorAmounts[y]);
+authorsMan.sort((x, y) => authorAmounts[y]-authorAmounts[y]);
 
 console.log("Writing epub files");
 fs.writeFileSync("book/OEBPS/Content.opf", content());
@@ -83,7 +83,7 @@ function addAuthor(author){
 	let amount = 0;
 	authors[author].forEach(post => {
 		list+="<a href=\"../post/"+post[0]+".xhtml\">"+post[1]+"</a><br/>";
-		amount++;
+		amount+=post[2];
 	});
 	authorAmounts[author] = amount;
 	let text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -108,7 +108,7 @@ function addLine(line){
 		authors[line["author"]] = [];
 		authorsMan.push(line["author"]);
 	}
-	authors[line["author"]].push([line["id"], line["title"]]);
+	authors[line["author"]].push([line["id"], line["title"], line["score"]);
 	
 	var post = line["selftext"].replace(/\\/g, "");
 	
