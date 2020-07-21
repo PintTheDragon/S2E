@@ -92,16 +92,16 @@ fs.writeFileSync("book/OEBPS/posts.xhtml", postsPage());
 
 function content(){
 	var manifest = "        <item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\" />\n        <item id=\"title\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"authors\" href=\"authors.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"posts\" href=\"posts.xhtml\" media-type=\"application/xhtml+xml\" />\n";
-	var spine = "<itemref idref=\"title\" />\n";
+	var spine = "<itemref idref=\"title\" linear=\"yes\" />\n";
 	linesMan.forEach(line => {
 		manifest+=`        <item id="${line[0]}" href="post/${line[0]}.xhtml" media-type="application/xhtml+xml" />\n`;
-		spine+=`        <itemref idref="${line[0]}" />\n`;
+		spine+=`        <itemref idref="${line[0]}" linear="no" />\n`;
 	});
 	authorsMan.forEach(author => {
 		manifest+=`        <item id="${author}" href="author/${author}.xhtml" media-type="application/xhtml+xml" />\n`;
-		spine+=`        <itemref idref="${author}" />\n`;
+		spine+=`        <itemref idref="${author}" linear="no" />\n`;
 	});
-	spine+="<itemref idref=\"posts\" />\n<itemref idref=\"authors\" />\n";
+	spine+="<itemref idref=\"posts\" linear=\"yes\ "/>\n<itemref idref=\"authors\" linear=\"yes\" />\n";
 	return `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookID" version="2.0" >
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
@@ -180,7 +180,7 @@ function title(){
 function postsPage(){
 	var post = "";
 	linesMan.forEach(line => {
-		post += `<h2 style="font-size: 1em; font-weight: normal;"><a href="post/${line[0]}.xhtml">${line[1]}</a></h4><br/>`;
+		post += `<h2 style="font-size: 1em; font-weight: normal;"><a href="post/${line[0]}.xhtml">${line[1]}</a></h2><br/>`;
 	});
 	
 	return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -198,7 +198,7 @@ ${post}
 function authorsPage(){
 	var post = "";
 	authorsMan.forEach(author => {
-		post += `<h2 style="font-size: 1em; font-weight: normal;"><a href="author/${author}.xhtml">${author}</a></h4><br/>`;
+		post += `<h2 style="font-size: 1em; font-weight: normal;"><a href="author/${author}.xhtml">${author}</a></h2><br/>`;
 	});
 	
 	return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
