@@ -15,16 +15,50 @@ let authorsMan = [];
 let authors = {};
 let links = [];
 let ids = [];
+console.log("Adding archived posts");
 lines.forEach(addLine);
 (async () => {
-let flag = true;
-let reqNum = 0;
-while(flag){
-	flag = false;
-	let idsQ = "";
-	for(var i = 0; i < links.length; i++){
-		if(ids.includes(links[i])) continue;
-		idsQ+=links[i]+",";
+console.log("Downloading references from pushshift");
+await download();
+
+console.log("Downloading missed posts");
+while(findNull()) await download();
+
+console.log("Adding authors");
+Object.keys(authors).forEach(addAuthor);
+
+console.log("Sorting posts");
+linesMan.sort((x, y) => y[2]-x[2]);
+
+console.log("Writing epub files");
+fs.writeFileSync("book/OEBPS/Content.opf", content());
+//fs.writeFileSync("book/OEBPS/toc.ncx", toc());
+fs.writeFileSync("book/OEBPS/title.xhtml", title());
+fs.writeFileSync("book/OEBPS/authors.xhtml", authorsPage());
+fs.writeFileSync("book/OEBPS/posts.xhtml", postsPage());
+fs.writeFileSync("book/OEBPS/toc.xhtml", tocXHTML());
+})();
+
+function findNull(){
+	let flag = false;
+	for(var i = 0; i < linesMan.length; i++){
+		if(!fs.existsSync("book/OEBPS/post/"+linesMan[0]+".xhtml")){
+			removeA(ids, linesMan[0]);
+			if(!links.includes(linesMan[0])) links.push(linesMan[0]);
+			flag = true;
+		}
+	}
+}
+
+async function download(){
+	let flag = true;
+	let reqNum = 0;
+	while(flag){
+		flag = false;
+		let idsQ = "";
+		for(var i = 0; i < links.length; i++){
+			if(ids.includes(links[i])) continue;
+			idsQ+=links[i]+",";
 	}
 	let json = JSON.parse(request('GET', 'https://api.pushshift.io/reddit/search/submission/?subreddit='+subreddit+'&ids='+idsQ).getBody());
 	if(json["data"].length == 0) break;
@@ -37,18 +71,7 @@ while(flag){
 		reqNum = 0;
 	}
 }
-
-Object.keys(authors).forEach(addAuthor);
-
-linesMan.sort((x, y) => y[2]-x[2]);
-
-fs.writeFileSync("book/OEBPS/Content.opf", content());
-//fs.writeFileSync("book/OEBPS/toc.ncx", toc());
-fs.writeFileSync("book/OEBPS/title.xhtml", title());
-fs.writeFileSync("book/OEBPS/authors.xhtml", authorsPage());
-fs.writeFileSync("book/OEBPS/posts.xhtml", postsPage());
-fs.writeFileSync("book/OEBPS/toc.xhtml", tocXHTML());
-})();
+}
 
 function addAuthor(author){
 	let list = "";
@@ -298,4 +321,15 @@ function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+function removeA(arr) {
+    var what, a = arguments, L = a.length, ax;
+    while (L > 1 && arr.length) {
+        what = a[--L];
+        while ((ax= arr.indexOf(what)) !== -1) {
+            arr.splice(ax, 1);
+        }
+    }
+    return arr;
 }
