@@ -21,12 +21,15 @@ let flag = true;
 let reqNum = 0;
 while(flag){
 	flag = false;
+	let idsQ = "";
 	for(var i = 0; i < links.length; i++){
 		if(ids.includes(links[i])) continue;
-		let json = JSON.parse(request('GET', 'https://api.pushshift.io/reddit/search/submission/?subreddit='+subreddit+'&ids='+links[i]).getBody());
-		if(json["data"].length != 1) continue;
+		idsQ+=links[i]+",";
+	}
+		let json = JSON.parse(request('GET', 'https://api.pushshift.io/reddit/search/submission/?subreddit='+subreddit+'&ids='+idsQ).getBody());
+		if(json["data"].length == 0) break;
 		flag = true;
-		addLine(json["data"][0]);
+		json["data"].forEach(addLine);
 		await sleep(1000);
 		reqNum++;
 		if(reqNum > 150){
@@ -34,7 +37,6 @@ while(flag){
 			reqNum = 0;
 		}
 	}
-}
 
 Object.keys(authors).forEach(author => {
 	let list = "";
