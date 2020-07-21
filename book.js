@@ -101,7 +101,7 @@ function content(){
 		manifest+=`        <item id="${author}" href="author/${author}.xhtml" media-type="application/xhtml+xml" />\n`;
 		spine+=`        <itemref idref="${author}" linear="no" />\n`;
 	});
-	spine+="<itemref idref=\"posts\" linear=\"yes\ "/>\n<itemref idref=\"authors\" linear=\"yes\" />\n";
+	spine+="<itemref idref=\"posts\" linear=\"yes\" />\n<itemref idref=\"authors\" linear=\"yes\" />\n";
 	return `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookID" version="2.0" >
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
