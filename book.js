@@ -15,6 +15,7 @@ let authorsMan = [];
 let authors = {};
 let links = [];
 let ids = [];
+let authorAmounts = {};
 console.log("Adding archived posts");
 lines.forEach(addLine);
 (async () => {
@@ -30,6 +31,9 @@ Object.keys(authors).forEach(addAuthor);
 console.log("Sorting posts");
 linesMan.sort((x, y) => y[2]-x[2]);
 
+console.log("Sorting authors");
+linesMan.sort((x, y) => authorAmounts[y]-authorAmounts[y]);
+
 console.log("Writing epub files");
 fs.writeFileSync("book/OEBPS/Content.opf", content());
 //fs.writeFileSync("book/OEBPS/toc.ncx", toc());
@@ -41,13 +45,13 @@ fs.writeFileSync("book/OEBPS/toc.xhtml", tocXHTML());
 
 function findNull(){
 	let flag = false;
-	for(var i = 0; i < linesMan.length; i++){
-		if(!fs.existsSync("book/OEBPS/post/"+linesMan[0]+".xhtml")){
-			removeA(ids, linesMan[0]);
-			if(!links.includes(linesMan[0])) links.push(linesMan[0]);
+	linesMan.forEach((line) => {
+		if(!fs.existsSync("book/OEBPS/post/"+line+".xhtml")){
+			removeA(ids, line);
+			if(!links.includes(line)) links.push(line);
 			flag = true;
 		}
-	}
+	});
 }
 
 async function download(){
@@ -75,9 +79,12 @@ async function download(){
 
 function addAuthor(author){
 	let list = "";
+	let amount = 0;
 	authors[author].forEach(post => {
 		list+="<a href=\"../post/"+post[0]+".xhtml\">"+post[1]+"</a><br/>";
+		amount++;
 	});
+	authorAmounts[author] = amount;
 	let text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
