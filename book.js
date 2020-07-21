@@ -9,6 +9,7 @@ const uuid = "397c21b8e1f24d0fa3377fc6c722ec48";
 const subreddit = "nosleep";
 const minChars = 1000;
 const file = "nosleep.json";
+const threshold = 3;
 
 let lines = JSON.parse(fs.readFileSync(file));
 let linesMan = [];
@@ -16,9 +17,10 @@ let authorsMan = [];
 let authors = {};
 let links = [];
 let ids = [];
-let authorAmounts = {};
+let authorNum = {};
+let refs = [];
 console.log("Adding archived posts");
-lines.forEach(addLine);
+lines.forEach(line => addLine(line, false));
 (async () => {
 console.log("Downloading references from pushshift");
 await download();
@@ -33,7 +35,7 @@ console.log("Sorting posts");
 linesMan.sort((x, y) => y[2]-x[2]);
 
 console.log("Sorting authors");
-authorsMan.sort((x, y) => authorAmounts[y]-authorAmounts[y]);
+authorsMan.sort((x, y) => authorNum[y]-authorNum[x]);
 
 console.log("Writing epub files");
 fs.writeFileSync("book/OEBPS/Content.opf", content());
@@ -62,20 +64,20 @@ async function download(){
 		flag = false;
 		let idsQ = "";
 		for(var i = 0; i < links.length; i++){
-			if(ids.includes(links[i])) continue;
+			if(ids.includes(links[i]) && !refs.includes(links[i])) continue;
 			idsQ+=links[i]+",";
+		}
+		let json = JSON.parse(request('GET', 'https://api.pushshift.io/reddit/search/submission/?subreddit='+subreddit+'&ids='+idsQ).getBody());
+		if(json["data"].length == 0) break;
+		flag = true;
+		json["data"].forEach(line => addLine(line, true));
+		await sleep(1000);
+		reqNum++;
+		if(reqNum > 150){
+			await sleep(60000);
+			reqNum = 0;
+		}
 	}
-	let json = JSON.parse(request('GET', 'https://api.pushshift.io/reddit/search/submission/?subreddit='+subreddit+'&ids='+idsQ).getBody());
-	if(json["data"].length == 0) break;
-	flag = true;
-	json["data"].forEach(addLine);
-	await sleep(1000);
-	reqNum++;
-	if(reqNum > 150){
-		await sleep(60000);
-		reqNum = 0;
-	}
-}
 }
 
 function addAuthor(author){
@@ -85,7 +87,7 @@ function addAuthor(author){
 		list+="<a href=\"../post/"+post[0]+".xhtml\">"+post[1]+"</a><br/>";
 		amount+=post[2];
 	});
-	authorAmounts[author] = amount;
+	authorNum[author] = amount;
 	let text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -99,9 +101,11 @@ ${list}
 	fs.writeFileSync("book/OEBPS/author/"+author+".xhtml", text);
 }
 
-function addLine(line){
-	if(line["subreddit"] !== subreddit || line["stickied"] || line["author"] === "[deleted]" || line["selftext"] === "[removed]" || line["selftext"].length < minChars){
+function addLine(line, ref){
+	if(line["subreddit"] !== subreddit || line["stickied"] || line["author"] === "[deleted]" || line["selftext"] === "[removed]" || line["selftext"].length < minChars || (line["score"] < threshold && !ref)){
+		if(line["score"] < threshold && !ref) refs.push(line["id"]);
 		ids.push(line["id"]);
+		if(refs.includes(line["id"]) && ref) removeA(refs, line["id"]);
 		return;
 	}
 	if(!authors.hasOwnProperty(line["author"])){
@@ -160,6 +164,7 @@ ${newp}
 	linesMan.push([line["id"], line["title"], line["score"]]);
 	fs.writeFileSync("book/OEBPS/post/"+line["id"]+".xhtml", text);
 	ids.push(line["id"]);
+	if(refs.includes(line["id"])) removeA(refs, line["id"]);
 }
 
 function content(){
