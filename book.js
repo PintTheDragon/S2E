@@ -92,8 +92,8 @@ fs.writeFileSync("book/OEBPS/posts.xhtml", postsPage());
 fs.writeFileSync("book/OEBPS/toc.xhtml", tocXHTML());
 
 function content(){
-	let manifest = "        <item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\" />\n        <item id=\"title\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"authors\" href=\"authors.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"posts\" href=\"posts.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"toc\" href=\"toc.xhtml\" media-type=\"application/xhtml+xml\" />\n";
-	let spine = "<itemref idref=\"title\" linear=\"yes\" />\n<itemref idref=\"toc\" linear=\"yes\" />\n";
+	let manifest = "        <item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\" />\n        <item id=\"toc\" properties=\"nav\" href=\"toc.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"title\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"authors\" href=\"authors.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"posts\" href=\"posts.xhtml\" media-type=\"application/xhtml+xml\" />\n";
+	let spine = "<itemref idref=\"title\" linear=\"yes\" />\n";
 	linesMan.forEach(line => {
 		manifest+=`        <item id="${line[0]}" href="post/${line[0]}.xhtml" media-type="application/xhtml+xml" />\n`;
 		spine+=`        <itemref idref="${line[0]}" linear="no" />\n`;
@@ -246,7 +246,7 @@ function tocXHTML(){
 <body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
 <nav role="doc-toc" epub:type="toc" id="toc">
 <h2>Table of Contents</h2>
-<ol>
+<ol epub:type="list">
 ${items}
 </ol>
 </nav>
