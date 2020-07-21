@@ -43,10 +43,11 @@ lines.forEach(line => {
 	
 	var newp = "";
 	post.split("\n").forEach(p => {
-	if(p.trim() == "&#x200B;" || p.trim() == "") p = "​";
+	if((p.trim() == "&#x200B;" || p.trim() == "&amp;#x200B;") || p.trim() == "") p = "​";
 	newp+="<p>"+p+"</p>";	
 	});
 	newp.replace(/&#x200B;/g, "​");
+	newp.replace(/&amp;#x200B;/g, "​");
 	
 	
 	var text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -56,7 +57,7 @@ lines.forEach(line => {
 </head>
 <body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
 <h1 style="text-align: center;">${line["title"]}</h1>
-<h2 style="text-align: center;">By <a href="../author/${line["author"]}.xhtml">${line["author"]}</a></h2>
+<p style="font-size: 1.5em; font-weight: bolder; text-align: center;">By <a href="../author/${line["author"]}.xhtml">${line["author"]}</a></p>
 ${newp}
 </body>
 </html>`;
@@ -90,7 +91,7 @@ fs.writeFileSync("book/OEBPS/authors.xhtml", authorsPage());
 fs.writeFileSync("book/OEBPS/posts.xhtml", postsPage());
 
 function content(){
-	var manifest = "        <item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\" />\n        <item id=\"title\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"authors\" href=\"authors.ncx\" media-type=\"application/xhtml+xml\" />\n        <item id=\"posts\" href=\"posts.xhtml\" media-type=\"application/xhtml+xml\" />\n";
+	var manifest = "        <item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\" />\n        <item id=\"title\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"authors\" href=\"authors.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"posts\" href=\"posts.xhtml\" media-type=\"application/xhtml+xml\" />\n";
 	var spine = "<itemref idref=\"title\" />\n";
 	linesMan.forEach(line => {
 		manifest+=`        <item id="${line[0]}" href="post/${line[0]}.xhtml" media-type="application/xhtml+xml" />\n`;
@@ -126,37 +127,14 @@ function toc(){
         <content src="title.xhtml"/>
     </navPoint>
 `;
-	var order = 2;
-	linesMan.forEach(line => {
-		navs += `    <navPoint id="${line[0]}" playOrder="${order}">
-        <navLabel>
-            <text>${line[1]}</text>
-        </navLabel>
-        <content src="post/${line[0]}.xhtml"/>
-    </navPoint>
-`;
-order++;
-	});
-	
-	authorsMan.forEach(author => {
-		navs += `    <navPoint id="${author}" playOrder="${order}">
-        <navLabel>
-            <text>${author}</text>
-        </navLabel>
-        <content src="author/${author}.xhtml"/>
-    </navPoint>
-`;
-		order++;
-	});
-	
-	navs += `    <navPoint id="posts" playOrder="${order}">
+	navs += `    <navPoint id="posts" playOrder="2">
         <navLabel>
             <text>Posts</text>
         </navLabel>
         <content src="posts.xhtml"/>
     </navPoint>
 `;
-	navs += `    <navPoint id="authors" playOrder="${order+1}">
+	navs += `    <navPoint id="authors" playOrder="3">
         <navLabel>
             <text>Authors</text>
         </navLabel>
@@ -202,7 +180,7 @@ function title(){
 function postsPage(){
 	var post = "";
 	linesMan.forEach(line => {
-		post += `<a href="../post/${line[0]}.xhtml">${line[1]}</a><br/>`;
+		post += `<h4 style="font-weight: normal;"><a href="post/${line[0]}.xhtml">${line[1]}</a></h4><br/>`;
 	});
 	
 	return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -220,7 +198,7 @@ ${post}
 function authorsPage(){
 	var post = "";
 	authorsMan.forEach(author => {
-		post += `<a href="../author/${author}.xhtml">${author}</a><br/>`;
+		post += `<h4 style="font-weight: normal;"><a href="author/${author}.xhtml">${author}</a></h4><br/>`;
 	});
 	
 	return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
