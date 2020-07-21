@@ -1,5 +1,6 @@
 const fs = require('fs');
 const showdown  = require('showdown');
+const request = require('sync-request');
 
 const converter = new showdown.Converter();
 
@@ -12,8 +13,62 @@ let lines = JSON.parse(fs.readFileSync('nosleep.json'));
 let linesMan = [];
 let authorsMan = [];
 let authors = {};
-lines.forEach(line => {
-	if(line["subreddit"] !== subreddit || line["stickied"] || line["author"] === "[deleted]" || line["selftext"] === "[removed]" || line["selftext"].length < minChars) return;
+let links = [];
+let ids = [];
+lines.forEach(addLine);
+(async () => {
+let flag = true;
+let reqNum = 0;
+while(flag){
+	flag = false;
+	for(var i = 0; i < links.length; i++){
+		if(ids.includes(links[i])) continue;
+		let json = JSON.parse(request('GET', 'https://api.pushshift.io/reddit/search/submission/?subreddit='+subreddit+'&ids='+links[i]).getBody());
+		if(json["data"].length != 1) continue;
+		flag = true;
+		addLine(json["data"][0]);
+		await sleep(1000);
+		reqNum++;
+		if(reqNum > 150){
+			await sleep(60000);
+			reqNum = 0;
+		}
+	}
+}
+
+Object.keys(authors).forEach(author => {
+	let list = "";
+	authors[author].forEach(post => {
+		list+="<a href=\"../post/"+post[0]+".xhtml\">"+post[1]+"</a><br/>";
+	});
+	let text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title/>
+</head>
+<body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
+<h1 style="text-align: center;">${author}</h1>
+${list}
+</body>
+</html>`;
+	fs.writeFileSync("book/OEBPS/author/"+author+".xhtml", text);
+});
+
+linesMan.sort((x, y) => y[2]-x[2]);
+
+fs.writeFileSync("book/OEBPS/Content.opf", content());
+//fs.writeFileSync("book/OEBPS/toc.ncx", toc());
+fs.writeFileSync("book/OEBPS/title.xhtml", title());
+fs.writeFileSync("book/OEBPS/authors.xhtml", authorsPage());
+fs.writeFileSync("book/OEBPS/posts.xhtml", postsPage());
+fs.writeFileSync("book/OEBPS/toc.xhtml", tocXHTML());
+})();
+
+function addLine(line){
+	if(line["subreddit"] !== subreddit || line["stickied"] || line["author"] === "[deleted]" || line["selftext"] === "[removed]" || line["selftext"].length < minChars){
+		ids.push(line["id"]);
+		return;
+	}
 	if(!authors.hasOwnProperty(line["author"])){
 		authors[line["author"]] = [];
 		authorsMan.push(line["author"]);
@@ -38,7 +93,10 @@ lines.forEach(line => {
 			let exec = /\/([^\/]*)/g.exec(url.pathname);
 			if(exec) text = exec[1];
 		}
-		if(text != "") post = post.replace(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9@:;%_\+.~#?&//=]*)/, text+".xhtml");
+		if(text != ""){
+			if(!links.includes(text))links.push(text);
+			post = post.replace(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9@:;%_\+.~#?&//=]*)/, text+".xhtml");
+		}
 		else post = post.replace(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9@:;%_\+.~#?&//=]*)/, line["id"]+".xhtml");
 	});
 	post = converter.makeHtml(post);
@@ -46,7 +104,7 @@ lines.forEach(line => {
 	let newp = "";
 	post.split("\n").forEach(p => {
 	if((p.trim() == "&#x200B;" || p.trim() == "&amp;#x200B;") || p.trim() == "") p = "​";
-	newp+="<p>"+p+"</p>";	
+	newp+=p;	
 	});
 	newp.replace(/&#x200B;/g, "​");
 	newp.replace(/&amp;#x200B;/g, "​");
@@ -64,34 +122,10 @@ ${newp}
 </body>
 </html>`;
 	
-	linesMan.push([line["id"], line["title"]]);
+	linesMan.push([line["id"], line["title"], line["score"]]);
 	fs.writeFileSync("book/OEBPS/post/"+line["id"]+".xhtml", text);
-});
-
-Object.keys(authors).forEach(author => {
-	let list = "";
-	authors[author].forEach(post => {
-		list+="<a href=\"../post/"+post[0]+".xhtml\">"+post[1]+"</a><br/>";
-	});
-	let text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <title/>
-</head>
-<body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
-<h1 style="text-align: center;">${author}</h1>
-${list}
-</body>
-</html>`;
-	fs.writeFileSync("book/OEBPS/author/"+author+".xhtml", text);
-});
-
-fs.writeFileSync("book/OEBPS/Content.opf", content());
-//fs.writeFileSync("book/OEBPS/toc.ncx", toc());
-fs.writeFileSync("book/OEBPS/title.xhtml", title());
-fs.writeFileSync("book/OEBPS/authors.xhtml", authorsPage());
-fs.writeFileSync("book/OEBPS/posts.xhtml", postsPage());
-fs.writeFileSync("book/OEBPS/toc.xhtml", tocXHTML());
+	ids.push(line["id"]);
+}
 
 function content(){
 	let manifest = "        <item id=\"toc\" properties=\"nav\" href=\"toc.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"title\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"authors\" href=\"authors.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"posts\" href=\"posts.xhtml\" media-type=\"application/xhtml+xml\" />\n";
@@ -254,4 +288,10 @@ ${items}
 </nav>
 </body>
 </html>`;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
