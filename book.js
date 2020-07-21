@@ -56,7 +56,7 @@ lines.forEach(line => {
   <title>${line["title"]}</title>
 </head>
 <body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
-<h1 style="text-align: center;">${line["title"]}</h1>
+<p style="font-size: 2em; font-weight: bolder; text-align: center;">${line["title"]}</p>
 <p style="font-size: 1.5em; font-weight: bolder; text-align: center;">By <a href="../author/${line["author"]}.xhtml">${line["author"]}</a></p>
 ${newp}
 </body>
@@ -180,7 +180,7 @@ function title(){
 function postsPage(){
 	var post = "";
 	linesMan.forEach(line => {
-		post += `<h4 style="font-weight: normal;"><a href="post/${line[0]}.xhtml">${line[1]}</a></h4><br/>`;
+		post += `<h2 style="font-size: 1em; font-weight: normal;"><a href="post/${line[0]}.xhtml">${line[1]}</a></h4><br/>`;
 	});
 	
 	return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -198,7 +198,7 @@ ${post}
 function authorsPage(){
 	var post = "";
 	authorsMan.forEach(author => {
-		post += `<h4 style="font-weight: normal;"><a href="author/${author}.xhtml">${author}</a></h4><br/>`;
+		post += `<h2 style="font-size: 1em; font-weight: normal;"><a href="author/${author}.xhtml">${author}</a></h4><br/>`;
 	});
 	
 	return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
