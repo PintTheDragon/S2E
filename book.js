@@ -79,7 +79,7 @@ function addLine(line){
 	}
 	authors[line["author"]].push([line["id"], line["title"]]);
 	
-	var post = line["selftext"];
+	var post = line["selftext"].replace(/\\/g, "");
 	
 	let postmatch = post.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9@:;%_\+.~#?&//=]*)/g);
 	if(postmatch !== null)
