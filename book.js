@@ -108,7 +108,7 @@ function addLine(line){
 		authors[line["author"]] = [];
 		authorsMan.push(line["author"]);
 	}
-	authors[line["author"]].push([line["id"], line["title"], line["score"]);
+	authors[line["author"]].push([line["id"], line["title"], line["score"]]);
 	
 	var post = line["selftext"].replace(/\\/g, "");
 	
