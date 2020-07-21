@@ -26,19 +26,31 @@ while(flag){
 		if(ids.includes(links[i])) continue;
 		idsQ+=links[i]+",";
 	}
-		let json = JSON.parse(request('GET', 'https://api.pushshift.io/reddit/search/submission/?subreddit='+subreddit+'&ids='+idsQ).getBody());
-		if(json["data"].length == 0) break;
-		flag = true;
-		json["data"].forEach(addLine);
-		await sleep(1000);
-		reqNum++;
-		if(reqNum > 150){
-			await sleep(60000);
-			reqNum = 0;
-		}
+	let json = JSON.parse(request('GET', 'https://api.pushshift.io/reddit/search/submission/?subreddit='+subreddit+'&ids='+idsQ).getBody());
+	if(json["data"].length == 0) break;
+	flag = true;
+	json["data"].forEach(addLine);
+	await sleep(1000);
+	reqNum++;
+	if(reqNum > 150){
+		await sleep(60000);
+		reqNum = 0;
 	}
+}
 
-Object.keys(authors).forEach(author => {
+Object.keys(authors).forEach(addAuthor);
+
+linesMan.sort((x, y) => y[2]-x[2]);
+
+fs.writeFileSync("book/OEBPS/Content.opf", content());
+//fs.writeFileSync("book/OEBPS/toc.ncx", toc());
+fs.writeFileSync("book/OEBPS/title.xhtml", title());
+fs.writeFileSync("book/OEBPS/authors.xhtml", authorsPage());
+fs.writeFileSync("book/OEBPS/posts.xhtml", postsPage());
+fs.writeFileSync("book/OEBPS/toc.xhtml", tocXHTML());
+})();
+
+function addAuthor(author){
 	let list = "";
 	authors[author].forEach(post => {
 		list+="<a href=\"../post/"+post[0]+".xhtml\">"+post[1]+"</a><br/>";
@@ -54,17 +66,7 @@ ${list}
 </body>
 </html>`;
 	fs.writeFileSync("book/OEBPS/author/"+author+".xhtml", text);
-});
-
-linesMan.sort((x, y) => y[2]-x[2]);
-
-fs.writeFileSync("book/OEBPS/Content.opf", content());
-//fs.writeFileSync("book/OEBPS/toc.ncx", toc());
-fs.writeFileSync("book/OEBPS/title.xhtml", title());
-fs.writeFileSync("book/OEBPS/authors.xhtml", authorsPage());
-fs.writeFileSync("book/OEBPS/posts.xhtml", postsPage());
-fs.writeFileSync("book/OEBPS/toc.xhtml", tocXHTML());
-})();
+}
 
 function addLine(line){
 	if(line["subreddit"] !== subreddit || line["stickied"] || line["author"] === "[deleted]" || line["selftext"] === "[removed]" || line["selftext"].length < minChars){
@@ -108,8 +110,8 @@ function addLine(line){
 	if((p.trim() == "&#x200B;" || p.trim() == "&amp;#x200B;") || p.trim() == "") p = "​";
 	newp+=p;	
 	});
-	newp.replace(/&#x200B;/g, "​");
-	newp.replace(/&amp;#x200B;/g, "​");
+	newp = newp.replace(/&#x200B;/g, "​");
+	newp = newp.replace(/&amp;#x200B;/g, "​");
 	
 	
 	let text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
