@@ -8,8 +8,9 @@ const name = "r/nosleep Collection";
 const uuid = "397c21b8e1f24d0fa3377fc6c722ec48";
 const subreddit = "nosleep";
 const minChars = 1000;
+const file = "nosleep.json";
 
-let lines = JSON.parse(fs.readFileSync('nosleep.json'));
+let lines = JSON.parse(fs.readFileSync(file));
 let linesMan = [];
 let authorsMan = [];
 let authors = {};
