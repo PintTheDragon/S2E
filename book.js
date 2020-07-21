@@ -5,13 +5,16 @@ const converter = new showdown.Converter();
 
 const name = "r/nosleep Collection";
 const uuid = "397c21b8e1f24d0fa3377fc6c722ec48";
+const subreddit = "nosleep";
+const minChars = 1000;
 
 let lines = JSON.parse(fs.readFileSync('nosleep.json'));
 let linesMan = [];
 let authorsMan = [];
 let authors = {};
 lines.forEach(line => {
-	if(line["author"] === "[deleted]" || line["selftext"] === "[removed]" || line["selftext"].length < 1000) return;
+	if() continue;
+	if(line["subreddit"] !== subreddit || line["stickied"] || line["author"] === "[deleted]" || line["selftext"] === "[removed]" || line["selftext"].length < minChars) return;
 	if(!authors.hasOwnProperty(line["author"])){
 		authors[line["author"]] = [];
 		authorsMan.push(line["author"]);
@@ -53,7 +56,7 @@ lines.forEach(line => {
 	let text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>${line["title"]}</title>
+  <title/>
 </head>
 <body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
 <h1 style="text-align: center;">${line["title"]}</h1>
@@ -74,7 +77,7 @@ Object.keys(authors).forEach(author => {
 	let text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>${author}</title>
+  <title/>
 </head>
 <body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
 <h1 style="text-align: center;">${author}</h1>
@@ -85,14 +88,14 @@ ${list}
 });
 
 fs.writeFileSync("book/OEBPS/Content.opf", content());
-fs.writeFileSync("book/OEBPS/toc.ncx", toc());
+//fs.writeFileSync("book/OEBPS/toc.ncx", toc());
 fs.writeFileSync("book/OEBPS/title.xhtml", title());
 fs.writeFileSync("book/OEBPS/authors.xhtml", authorsPage());
 fs.writeFileSync("book/OEBPS/posts.xhtml", postsPage());
 fs.writeFileSync("book/OEBPS/toc.xhtml", tocXHTML());
 
 function content(){
-	let manifest = "        <item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\" />\n        <item id=\"toc\" properties=\"nav\" href=\"toc.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"title\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"authors\" href=\"authors.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"posts\" href=\"posts.xhtml\" media-type=\"application/xhtml+xml\" />\n";
+	let manifest = "        <item id=\"toc\" properties=\"nav\" href=\"toc.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"title\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"authors\" href=\"authors.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"posts\" href=\"posts.xhtml\" media-type=\"application/xhtml+xml\" />\n";
 	let spine = "<itemref idref=\"title\" linear=\"yes\" />\n";
 	linesMan.forEach(line => {
 		manifest+=`        <item id="${line[0]}" href="post/${line[0]}.xhtml" media-type="application/xhtml+xml" />\n`;
@@ -113,7 +116,7 @@ function content(){
     <manifest>
 ${manifest}
     </manifest>
-    <spine toc="ncx">
+    <spine>
 ${spine}
     </spine>
 </package>`;
@@ -241,7 +244,7 @@ function tocXHTML(){
 	return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>Authors</title>
+  <title>Table of Contents</title>
 </head>
 <body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
 <nav role="doc-toc" epub:type="toc" id="toc">
