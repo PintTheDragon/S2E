@@ -13,7 +13,6 @@ let linesMan = [];
 let authorsMan = [];
 let authors = {};
 lines.forEach(line => {
-	if() continue;
 	if(line["subreddit"] !== subreddit || line["stickied"] || line["author"] === "[deleted]" || line["selftext"] === "[removed]" || line["selftext"].length < minChars) return;
 	if(!authors.hasOwnProperty(line["author"])){
 		authors[line["author"]] = [];
