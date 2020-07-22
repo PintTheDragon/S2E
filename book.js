@@ -112,6 +112,9 @@ function addLine(line, ref){
 		authors[line["author"]] = [];
 		authorsMan.push(line["author"]);
 	}
+	let flag1 = true;
+	authors[line["author"]].forEach(a => {if(a[0] == line["id"]) flag1 = false;});
+	if(flag1)
 	authors[line["author"]].push([line["id"], line["title"], line["score"]]);
 	
 	var post = line["selftext"].replace(/\\/g, "");
@@ -161,6 +164,9 @@ ${newp}
 </body>
 </html>`;
 	
+	let flag2 = true;
+	linesMan.forEach(a => {if(a[0] == line["id"]) flag2 = false;});
+	if(flag2)
 	linesMan.push([line["id"], line["title"], line["score"]]);
 	fs.writeFileSync("book/OEBPS/post/"+line["id"]+".xhtml", text);
 	ids.push(line["id"]);
