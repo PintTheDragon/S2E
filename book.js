@@ -5,12 +5,36 @@ const path = require("path");
 
 const converter = new showdown.Converter();
 
-const name = "r/nosleep Collection";
-const uuid = "397c21b8e1f24d0fa3377fc6c722ec48";
-const subreddit = "nosleep";
-const minChars = 1000;
-const file = "nosleep.json";
-const threshold = 3;
+let name = null;
+let uuid = null;
+let subreddit = null;
+let minChars = 1000;
+let file = null;
+let threshold = 3;
+
+try{
+let args = process.argv.slice(2);
+if(args.length < 4) fail();
+name = args[0];
+uuid = args[1];
+subreddit = args[2];
+file = args[3];
+if(args.length < 5)
+minChars = parseInt(args[4]);
+if(args.length < 6)
+threshold = parseInt(args[5]);
+if(!name || !uuid || !subreddit || !file) fail();
+}
+catch(e){
+	console.log(e);
+	fail();
+}
+
+function fail(){
+	console.log("Usage: node book.js \"book title\" \"uuid\" \"subreddit\" \"file.json\" [minChars] [scoreThreshold]\n");
+	console.log("Example: node book.js \"r/nosleep Collection\" \"asmnfdkjhf78dhndj\" \"nosleep\" \"nosleep.json\" 1000 3");
+	process.exit();
+}
 
 let lines = JSON.parse("["+fs.readFileSync(file, "utf8").replace(/\r?\n|\r/g, ",").slice(0, -1)+"]");
 let linesMan = [];
@@ -221,7 +245,10 @@ function addLine(line, ref){
 
 async function downloadImages(){
 	for(var i = 0; i < downloadImgArr.length; i++){
-		if(fs.existsSync("book/OEBPS/post/image/"+path.basename(downloadImgArr[i])))  continue;
+		if(fs.existsSync("book/OEBPS/post/image/"+path.basename(downloadImgArr[i]))){
+			imgArr.push([path.basename(downloadImgArr[i], path.extname(downloadImgArr[i])), path.basename(downloadImgArr[i]), path.extname(downloadImgArr[i])]);
+			continue;
+		}
 		try{
 		fs.writeFileSync("book/OEBPS/post/image/"+path.basename(downloadImgArr[i]), request('GET', downloadImgArr[i], {encoding: 'binary'}).getBody(), 'binary');
 		imgArr.push([path.basename(downloadImgArr[i], path.extname(downloadImgArr[i])), path.basename(downloadImgArr[i]), path.extname(downloadImgArr[i])]);
@@ -446,7 +473,7 @@ function genArchive(){
 7z a -tzip book.epub mimetype -mx0
 7z a -tzip book.epub META-INF/ -mx5
 7z a -tzip book.epub OEBPS/ -mx5
-7z a -tzip book.epub OEBPS/post/image -mx9
+7z a -tzip book.epub OEBPS/post/image/ -mx9
 7z a -tzip book.epub OEBPS/post/ -mx5
 7z a -tzip book.epub OEBPS/author/ -mx5`;
 }
