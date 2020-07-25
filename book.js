@@ -98,7 +98,7 @@ lines.forEach(line => addLine(line, false));
     fs.writeFileSync("book/META-INF/container.xml", genContainer());
     fs.writeFileSync("book/mimetype", "application/epub+zip");
     fs.writeFileSync("book/archive.bat", genArchive());
-    fs.writeFileSync("book/flairs.xhtml", flairsPage());
+    fs.writeFileSync("book/OEBPS/flairs.xhtml", flairsPage());
 })();
 
 function findNull() {
