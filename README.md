@@ -1,0 +1,5 @@
+# Subreddit2EPUB
+Subreddit2EPUB (or S2E) is a program to create an offline version of a subreddit in an epub version.
+
+## Usage
+S2E works off of the [https://files.pushshift.io/reddit/submissions/](pushshift archives). You need to download and unzip the latest archive file (which will be ~100Gb), then use a command like `cat archive_file | grep 'subredditName' > files.json` to filter by subreddit. Next, run `book.js` using `node book.js "Book Title" uuid subreddit_name file.json 1000 3`. The `Book Title` is the title that will appear in a book reader, the `uuid` is something random that is unique to that book, the `subreddit_name` is the name of the subreddit you want posts from, the `file.json` is the name of the file you made at the beginning, the optional `1000` is the minimium amount of characters a post must have, and the optional `3` is the minimium points a post must have (these archives are collected early, so a post with 100+ upvotes might display as only 3 in the archive). After that, it will begin generating your book. Finally, you need to run the `archive.bat` file inside of the `book` directory. That's it! You can now view your subreddit offline! 

@@ -1,0 +1,15 @@
+{
+  "name": "subreddit2ebook",
+  "version": "1.0.0",
+  "description": "Turns a subreddit into an ebook for offline viewing.",
+  "main": "book.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "PintTheDragon",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "showdown": "^1.9.1",
+    "sync-request": "^6.1.0"
+  }
+}
