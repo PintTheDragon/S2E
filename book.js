@@ -265,7 +265,7 @@ function addLine(line, ref) {
 	</body>
 </html>`;
     } else if (line["post_hint"] == "image") {
-        downloadImgArr.push(line["url"]);
+        downloadImgArr.push([line["url"], line["id"], line["author"], line["link_flair_text"]]);
         text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
@@ -293,17 +293,22 @@ function addLine(line, ref) {
 
 async function downloadImages() {
     for (var i = 0; i < downloadImgArr.length; i++) {
-        if (fs.existsSync("book/OEBPS/post/image/" + path.basename(downloadImgArr[i]))) {
-            imgArr.push([path.basename(downloadImgArr[i], path.extname(downloadImgArr[i])), path.basename(downloadImgArr[i]), path.extname(downloadImgArr[i])]);
+        if (fs.existsSync("book/OEBPS/post/image/" + path.basename(downloadImgArr[i][0]))) {
+            imgArr.push([path.basename(downloadImgArr[i][0], path.extname(downloadImgArr[i][0])), path.basename(downloadImgArr[i][0]), path.extname(downloadImgArr[i][0])]);
             continue;
         }
         try {
-            fs.writeFileSync("book/OEBPS/post/image/" + path.basename(downloadImgArr[i]), request('GET', downloadImgArr[i], {
+            fs.writeFileSync("book/OEBPS/post/image/" + path.basename(downloadImgArr[i][0]), request('GET', downloadImgArr[i], {
                 encoding: 'binary'
             }).getBody(), 'binary');
-            imgArr.push([path.basename(downloadImgArr[i], path.extname(downloadImgArr[i])), path.basename(downloadImgArr[i]), path.extname(downloadImgArr[i])]);
+            imgArr.push([path.basename(downloadImgArr[i][0], path.extname(downloadImgArr[i][0])), path.basename(downloadImgArr[i][0]), path.extname(downloadImgArr[i][0])]);
             await sleep(1000);
-        } catch (e) {};
+        } catch (e) {
+			linesMan = linesMan.filter(line => line[0] != downloadImgArr[i][1]);
+			authors[downloadImgArr[i][2]] = authors[downloadImgArr[i][2]].filter(line => line[0] != downloadImgArr[i][1]);
+			if(downloadImgArr[i][3])
+			    flairs[downloadImgArr[i][3]] = flairs[downloadImgArr[i][3]].filter(line => line[0] != downloadImgArr[i][1]);
+		}
     }
 }
 
