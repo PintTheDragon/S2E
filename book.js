@@ -46,6 +46,9 @@ let authorNum = {};
 let refs = [];
 let downloadImgArr = [];
 let imgArr = [];
+let flairs = {};
+let flairsMan = [];
+let flairNum = {};
 
 console.log("Creating folders");
 createDir("book");
@@ -54,6 +57,7 @@ createDir("book/META-INF");
 createDir("book/OEBPS/post");
 createDir("book/OEBPS/post/image");
 createDir("book/OEBPS/author");
+createDir("book/OEBPS/flair");
 
 console.log("Adding archived posts");
 lines.forEach(line => addLine(line, false));
@@ -71,11 +75,17 @@ await downloadImages();
 console.log("Adding authors");
 Object.keys(authors).forEach(addAuthor);
 
+console.log("Adding flairs");
+Object.keys(flairs).forEach(addFlair);
+
 console.log("Sorting posts");
 linesMan.sort((x, y) => y[2]-x[2]);
 
 console.log("Sorting authors");
 authorsMan.sort((x, y) => authorNum[y]-authorNum[x]);
+
+console.log("Sorting flairs");
+flairsMan.sort((x, y) => flairNum[y]-flairNum[x]);
 
 console.log("Writing epub files");
 fs.writeFileSync("book/OEBPS/Content.opf", content());
@@ -88,6 +98,7 @@ fs.writeFileSync("book/OEBPS/style.css", genCSS());
 fs.writeFileSync("book/OEBPS/script.js", genJS());
 fs.writeFileSync("book/META-INF/container.xml", genContainer());
 fs.writeFileSync("book/mimetype", "application/epub+zip");
+fs.writeFileSync("book/archive.bat", genArchive());
 fs.writeFileSync("book/archive.bat", genArchive());
 })();
 
@@ -148,7 +159,30 @@ function addAuthor(author){
 		${list}
 	</body>
 </html>`;
-	fs.writeFileSync("book/OEBPS/author/"+author+".xhtml", text);
+	fs.writeFileSync("book/OEBPS/author/"+author.replace(/[^a-z0-9_-]/gi, '_')+".xhtml", text);
+}
+
+function addFlair(flair){
+	let list = "";
+	let amount = 0;
+	flairs[flair].forEach(post => {
+		list+="<a href=\"../post/"+post[0]+".xhtml\">"+post[1]+"</a><br/>";
+		amount+=post[2];
+	});
+	flairNum[flair] = amount;
+	let text = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<link rel="stylesheet" href="../style.css"></link>
+		<script type="text/javascript" src="../script.js"></script>
+		<title/>
+	</head>
+	<body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
+		<h1 style="text-align: center;">${flair}</h1>
+		${list}
+	</body>
+</html>`;
+	fs.writeFileSync("book/OEBPS/flair/"+flair.replace(/[^a-z0-9_-]/gi, '_')+".xhtml", text);
 }
 
 function addLine(line, ref){
@@ -167,6 +201,19 @@ function addLine(line, ref){
 	authors[line["author"]].forEach(a => {if(a[0] == line["id"]) flag1 = false;});
 	if(flag1)
 	authors[line["author"]].push([line["id"], line["title"], line["score"]]);
+
+	
+	if(line["link_flair_text"]){
+	if(!flairs.hasOwnProperty(line["link_flair_text"])){
+		flairs[line["link_flair_text"]] = [];
+		flairsMan.push(line["link_flair_text"]);
+	}
+	flag1 = true;
+	flairs[line["link_flair_text"]].forEach(a => {if(a[0] == line["id"]) flag1 = false;});
+	if(flag1)
+	flairs[line["link_flair_text"]].push([line["id"], line["title"], line["score"]]);
+	}
+	
 	if(line["post_hint"] == "self"){
 		var post = line["selftext"].replace(/\\/g, "");
 	
@@ -211,8 +258,8 @@ function addLine(line, ref){
 		<title/>
 	</head>
 	<body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
-		<h1 style="text-align: center;">${line["link_flair_text"] == "null" ? "<span"+(line["link_flair_background_color"] != "" ? " style=\"background-color: "+line["link_flair_background_color"]+";\"" : "")+" class=\"flair\">"+line["link_flair_text"]+"</span>" : ""}${line["title"]}</h1>
-		<h2 style="text-align: center;">By <a href="../author/${line["author"]}.xhtml">${line["author"]}</a></h2>
+		<h1 style="text-align: center;">${line["link_flair_text"] ? "<a href=\"../flair/"+line["link_flair_text"].replace(/[^a-z0-9_-]/gi, '_')+".xhtml\"><span"+(line["link_flair_background_color"] != "" ? " style=\"background-color: "+line["link_flair_background_color"]+";\"" : "")+" class=\"flair\">"+line["link_flair_text"]+"</span></a>" : ""}${line["title"]}</h1>
+		<h2 style="text-align: center;">By <a href="../author/${line["author"].replace(/[^a-z0-9_-]/gi, '_')}.xhtml">${line["author"]}</a></h2>
 		<div class="${line["over_18"] ? "blur" : ""}" ${line["over_18"] ? "onclick=\"blurr(this);\"" : ""}>${newp}</div>
 	</body>
 </html>`;
@@ -227,8 +274,8 @@ function addLine(line, ref){
 		<title/>
 	</head>
 	<body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
-		<h1 style="text-align: center;">${line["link_flair_text"] ? "<span"+(line["link_flair_background_color"] != "" ? " style=\"background-color: "+line["link_flair_background_color"]+";\"" : "")+" class=\"flair\">"+line["link_flair_text"]+"</span>" : ""}${line["title"]}</h1>
-		<h2 style="text-align: center;">By <a href="../author/${line["author"]}.xhtml">${line["author"]}</a></h2>
+		<h1 style="text-align: center;">${line["link_flair_text"] ? "<a href=\"../flair/"+line["link_flair_text"].replace(/[^a-z0-9_-]/gi, '_')+".xhtml\"><span"+(line["link_flair_background_color"] != "" ? " style=\"background-color: "+line["link_flair_background_color"]+";\"" : "")+" class=\"flair\">"+line["link_flair_text"]+"</span></a>" : ""}${line["title"]}</h1>
+		<h2 style="text-align: center;">By <a href="../author/${line["author"].replace(/[^a-z0-9_-]/gi, '_')}.xhtml">${line["author"]}</a></h2>
 		<img class="${line["over_18"] ? "blur" : ""}" src="${"image/"+path.basename(line["url"])}" ${line["over_18"] ? "onclick=\"blurr(this);\"" : ""}></img>
 	</body>
 </html>`;
@@ -259,15 +306,19 @@ async function downloadImages(){
 }
 
 function content(){
-	let manifest = "        <item id=\"toc\" properties=\"nav\" href=\"toc.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"title\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"authors\" href=\"authors.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"posts\" href=\"posts.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"style\" href=\"style.css\" media-type=\"text/css\"/>\n        <item id=\"script\" href=\"script.js\" media-type=\"text/javascript\"/>\n";
+	let manifest = "        <item id=\"toc\" properties=\"nav\" href=\"toc.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"title\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"authors\" href=\"authors.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"posts\" href=\"posts.xhtml\" media-type=\"application/xhtml+xml\" />\n        <item id=\"style\" href=\"style.css\" media-type=\"text/css\"/>\n        <item id=\"script\" href=\"script.js\" media-type=\"text/javascript\"/>\n        <item id=\"flairs\" href=\"flairs.xhtml\" media-type=\"application/xhtml+xml\" />\n";
 	let spine = "<itemref idref=\"title\" linear=\"yes\" />\n<itemref idref=\"toc\" linear=\"yes\" />\n";
 	linesMan.forEach(line => {
 		manifest+=`        <item id="${line[0]}" href="post/${line[0]}.xhtml" media-type="application/xhtml+xml" properties="scripted" />\n`;
 		spine+=`        <itemref idref="${line[0]}" linear="no" />\n`;
 	});
 	authorsMan.forEach(author => {
-		manifest+=`        <item id="${author}" href="author/${author}.xhtml" media-type="application/xhtml+xml" properties="scripted" />\n`;
-		spine+=`        <itemref idref="${author}" linear="no" />\n`;
+		manifest+=`        <item id="${author.replace(/[^a-z0-9_-]/gi, '_')}" href="author/${author.replace(/[^a-z0-9_-]/gi, '_')}.xhtml" media-type="application/xhtml+xml" properties="scripted" />\n`;
+		spine+=`        <itemref idref="${author.replace(/[^a-z0-9_-]/gi, '_')}" linear="no" />\n`;
+	});
+	flairsMan.forEach(flair => {
+		manifest+=`        <item id="${flair.replace(/[^a-z0-9_-]/gi, '_')}" href="flair/${flair.replace(/[^a-z0-9_-]/gi, '_')}.xhtml" media-type="application/xhtml+xml" properties="scripted" />\n`;
+		spine+=`        <itemref idref="${flair.replace(/[^a-z0-9_-]/gi, '_')}" linear="no" />\n`;
 	});
 	imgArr.forEach(img => {
 		manifest+=`        <item id="${img[0]}" href="post/image/${img[2]}" media-type="image/${img[1]}" />\n`;
@@ -305,14 +356,21 @@ function toc(){
         <content src="toc.xhtml"/>
     </navPoint>
 `;
-	navs += `    <navPoint id="posts" playOrder="3">
+	navs += `    <navPoint id="flairs" playOrder="3">
+        <navLabel>
+            <text>Flairs</text>
+        </navLabel>
+        <content src="flair.xhtml"/>
+    </navPoint>
+`;
+	navs += `    <navPoint id="posts" playOrder="4">
         <navLabel>
             <text>Posts</text>
         </navLabel>
         <content src="posts.xhtml"/>
     </navPoint>
 `;
-	navs += `    <navPoint id="authors" playOrder="4">
+	navs += `    <navPoint id="authors" playOrder="5">
         <navLabel>
             <text>Authors</text>
         </navLabel>
@@ -350,6 +408,8 @@ function title(){
 <a href="posts.xhtml">Posts</a>
 <br/>
 <a href="authors.xhtml">Authors</a>
+<br/>
+<a href="flairs.xhtml">Flairs</a>
 </body>
 </html>
 	`;
@@ -376,7 +436,7 @@ ${post}
 function authorsPage(){
 	let post = "";
 	authorsMan.forEach(author => {
-		post += `<p><a href="author/${author}.xhtml">${author}</a></p><br/>`;
+		post += `<p><a href="author/${author.replace(/[^a-z0-9_-]/gi, '_')}.xhtml">${author}</a></p><br/>`;
 	});
 	
 	return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -391,10 +451,35 @@ ${post}
 </html>`;
 }
 
+function flairsPage(){
+	let post = "";
+	flairsMan.forEach(flair => {
+		post += `<p><a href="flair/${flair.replace(/[^a-z0-9_-]/gi, '_')}.xhtml">${flair}</a></p><br/>`;
+	});
+	
+	return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Flairs</title>
+</head>
+<body style="margin-left:2%;margin-right:2%;margin-top:2%;margin-bottom:2%">
+<h1 style="text-align: center;">Flairs</h1>
+${post}
+</body>
+</html>`;
+}
+
+
 function tocXHTML(){
 	let items = "";
 	items += `<li><a href="title.xhtml">${name}</a></li>\n`;
 	items += `<li><a href="toc.xhtml">Table of Contents</a></li>\n`;
+	
+	let flairsList = "";
+	authorsMan.forEach(flair => {
+		flairsList += `<li><a href="flair/${flair.replace(/[^a-z0-9_-]/gi, '_')}.xhtml">${flair}</a></li>\n`;
+	});
+	items += `<li><a href="flairs.xhtml">Flairs</a><ol>${flairsList}</ol></li>`;
 	
 	let postsList = "";
 	linesMan.forEach(line => {
@@ -404,7 +489,7 @@ function tocXHTML(){
 	
 	let authorsList = "";
 	authorsMan.forEach(author => {
-		authorsList += `<li><a href="author/${author}.xhtml">${author}</a></li>\n`;
+		authorsList += `<li><a href="author/${author.replace(/[^a-z0-9_-]/gi, '_')}.xhtml">${author}</a></li>\n`;
 	});
 	items += `<li><a href="authors.xhtml">Authors</a><ol>${authorsList}</ol></li>`;
 	
