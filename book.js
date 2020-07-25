@@ -294,11 +294,12 @@ function addLine(line, ref) {
 async function downloadImages() {
     for (var i = 0; i < downloadImgArr.length; i++) {
         if (fs.existsSync("book/OEBPS/post/image/" + path.basename(downloadImgArr[i][0]))) {
+	
             imgArr.push([path.basename(downloadImgArr[i][0], path.extname(downloadImgArr[i][0])), path.basename(downloadImgArr[i][0]), path.extname(downloadImgArr[i][0])]);
             continue;
         }
         try {
-            fs.writeFileSync("book/OEBPS/post/image/" + path.basename(downloadImgArr[i][0]), request('GET', downloadImgArr[i], {
+            fs.writeFileSync("book/OEBPS/post/image/" + path.basename(downloadImgArr[i][0]), request('GET', downloadImgArr[i][0], {
                 encoding: 'binary'
             }).getBody(), 'binary');
             imgArr.push([path.basename(downloadImgArr[i][0], path.extname(downloadImgArr[i][0])), path.basename(downloadImgArr[i][0]), path.extname(downloadImgArr[i][0])]);
