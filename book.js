@@ -98,7 +98,7 @@ lines.forEach(line => addLine(line, false));
     fs.writeFileSync("book/META-INF/container.xml", genContainer());
     fs.writeFileSync("book/mimetype", "application/epub+zip");
     fs.writeFileSync("book/archive.bat", genArchive());
-    fs.writeFileSync("book/archive.bat", genArchive());
+    fs.writeFileSync("book/flairs.xhtml", flairsPage());
 })();
 
 function findNull() {
@@ -478,7 +478,7 @@ function tocXHTML() {
     items += `<li><a href="toc.xhtml">Table of Contents</a></li>\n`;
 
     let flairsList = "";
-    authorsMan.forEach(flair => {
+    flairsMan.forEach(flair => {
         flairsList += `<li><a href="flair/${flair.replace(/[^a-z0-9_-]/gi, '_')}.xhtml">${flair}</a></li>\n`;
     });
     items += `<li><a href="flairs.xhtml">Flairs</a><ol>${flairsList}</ol></li>`;
